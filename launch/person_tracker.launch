@@ -5,7 +5,7 @@
   <param name="YOLOV3/WEIGHT" type="string" value="$(find person_tracking)/src/detector/YOLOv3/weight/yolov3.weights"/>
   <param name="YOLOV3/CLASS_NAMES" type="string" value="$(find person_tracking)/src/detector/YOLOv3/cfg/coco.names"/>
 
-  <param name="DEEPSORT/REID_CKPT" type="string" value="$(find person_tracking)/src/deep_sort/deep/checkpoint/osnet_og.pth" />
+  <param name="DEEPSORT/REID_CKPT" type="string" value="$(find person_tracking)/src/deep_sort/deep/checkpoint/model.pth.tar-100" />
 
   <param name="person_tracker/camera_fov" type="int" value="60" />
 

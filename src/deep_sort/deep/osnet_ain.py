@@ -451,40 +451,11 @@ def init_pretrained_weights(model, checkpoint, key=''):
     import errno
     #import gdown
     from collections import OrderedDict
-
-    """def _get_torch_home():
-        ENV_TORCH_HOME = 'TORCH_HOME'
-        ENV_XDG_CACHE_HOME = 'XDG_CACHE_HOME'
-        DEFAULT_CACHE_DIR = '~/.cache'
-        torch_home = os.path.expanduser(
-            os.getenv(
-                ENV_TORCH_HOME,
-                os.path.join(
-                    os.getenv(ENV_XDG_CACHE_HOME, DEFAULT_CACHE_DIR), 'torch'
-                )
-            )
-        )
-        return torch_home
-
-    torch_home = _get_torch_home()
-    model_dir = os.path.join(torch_home, 'checkpoints')
-    try:
-        os.makedirs(model_dir)
-    except OSError as e:
-        if e.errno == errno.EEXIST:
-            # Directory already exists, ignore.
-            pass
-        else:
-            # Unexpected OSError, re-raise.
-            raise
-    filename = key + '_imagenet.pth'"""
-    cached_file = checkpoint
-
-    """if not os.path.exists(cached_file):
-        gdown.download(pretrained_urls[key], cached_file, quiet=False)"""
-
-    state_dict = torch.load(cached_file)
+    state_dict = torch.load(checkpoint)
+    #print(state_dict)
+    state_dict = state_dict["state_dict"]
     model_dict = model.state_dict()
+
     new_state_dict = OrderedDict()
     matched_layers, discarded_layers = [], []
 
@@ -505,12 +476,11 @@ def init_pretrained_weights(model, checkpoint, key=''):
         warnings.warn(
             'The pretrained weights from "{}" cannot be loaded, '
             'please check the key names manually '
-            '(** ignored and continue **)'.format(cached_file)
+            '(** ignored and continue **)'
         )
     else:
         print(
-            'Successfully loaded imagenet pretrained weights from "{}"'.
-            format(cached_file)
+            'Successfully loaded imagenet pretrained weights from "{}"'
         )
         if len(discarded_layers) > 0:
             print(
