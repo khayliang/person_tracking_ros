@@ -22,6 +22,8 @@ from std_msgs.msg import Float32, Bool, Int32MultiArray, Int32
 from rospy.numpy_msg import numpy_msg
 from sensor_msgs.msg import CompressedImage
 
+from person_tracking.srv import choose_target, clear_target
+
 """
 args: display, img_topic, camera, save_path, video_path frame_interval
 
@@ -45,15 +47,19 @@ class VideoTracker(object):
         self.angle_pub = rospy.Publisher("/person_tracking/target_angle", Float32, queue_size=1)
 
         self.target_present_pub = rospy.Publisher("/person_tracking/target_present", Bool, queue_size=1)
-        self.target_started_pub = rospy.Publisher("/person_tracking/track_started", Bool, queue_size=1)
+        self.target_indice_pub = rospy.Publisher("/person_tracking/target_indice", Int32, queue_size=1)
 
         self.detections_pub = rospy.Publisher("person_tracking/detection_indices", Int32MultiArray, queue_size=1)
 
         self.image_pub = rospy.Publisher("/person_tracking/deepsort_image/compressed", CompressedImage)
 
         #initialize subscribers to interact with node
-        self.target_clear_sub = rospy.Subscriber("person_tracking/clear_target", Bool, self.clear_track, queue_size=1)
-        self.choose_target_sub = rospy.Subscriber("person_tracking/choose_target", Int32, self.select_target, queue_size=1)
+        #self.target_clear_sub = rospy.Subscriber("person_tracking/clear_target", Bool, self.clear_track, queue_size=1)
+        #self.choose_target_sub = rospy.Subscriber("person_tracking/choose_target", Int32, self.select_target, queue_size=1)
+
+        #initialize services to interact with node
+        self.target_clear_srv = rospy.Service("person_tracking/clear_target", clear_target, self.clear_track)
+        self.target_choose_srv = rospy.Service("person_tracking/choose_target", choose_target, self.select_target)
 
         #concatenate rosparams to yolov3_deepsort style
         self.cfg = {"YOLOV3": yolov3_params, "DEEPSORT": deepsort_params}
@@ -129,23 +135,24 @@ class VideoTracker(object):
 
     #callback function to clear track
     def clear_track(self, ros_data):
-        try:
-            if self.idx_tracked is not None and ros_data.data:
-                if self.idx_tracked == -1:
-                    self.idx_tracked = None
-                elif self.idx_tracked is not None:
-                    self.idx_tracked = -1
-        except:
-            return
+        if self.idx_tracked is not None and ros_data.clear:
+            self.idx_tracked = None
+            return True
+        else:
+            return False
+
 
     #callback function to select target
     def select_target(self, ros_data):
-        try:
-            if self.idx_tracked is None:
-                self.idx_tracked = ros_data.data
-        except:
-            return
-        
+        if self.idx_tracked is None:
+            for det in self.results:
+                if det[2] == ros_data.target:
+                    self.idx_tracked = ros_data.target
+                    return True
+            
+            return False
+        else:
+            return False
 
     def ros_deepsort_callback(self, ros_data):
 
@@ -174,12 +181,8 @@ class VideoTracker(object):
         cls_conf = cls_conf[mask]
 
         # do tracking
-        if self.idx_tracked:
-            #tracking if index for target is selected
-            outputs = self.deepsort.update(bbox_xywh, cls_conf, im, tracking_target=self.idx_tracked)
-        else:
-            #tracking if not selected
-            outputs = self.deepsort.update(bbox_xywh, cls_conf, im)
+        outputs = self.deepsort.update(bbox_xywh, cls_conf, im, tracking_target=self.idx_tracked)
+
 
         # if detection present draw bounding boxes
         identities = []
@@ -272,10 +275,10 @@ class VideoTracker(object):
 
             self.bbox_pub.publish(x_center,y_center,0)
             self.angle_pub.publish(angle)
-            self.target_started_pub.publish(Bool(True))
+            self.target_indice_pub.publish(Int32(self.idx_tracked))
         #publish if target initialized
         else:
-            self.target_started_pub.publish(Bool(False))
+            self.target_indice_pub.publish(Int32(self.idx_tracked))
     #TODO: function for if no ros topic
    # def run(self):
 

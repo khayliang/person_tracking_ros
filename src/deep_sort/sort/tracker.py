@@ -70,19 +70,19 @@ class Tracker:
         """
 
         #update target track with custom max age for constant tracking
-        if tracking_target:
+        if tracking_target and self.tracking_id is None:
             if tracking_target > 0:
                 self.tracking_id = tracking_target
                 for i, track in enumerate(self.tracks):
                     if track.track_id == int(tracking_target):
                         self.tracks[i].no_destroy = True
                         break
-            else:
-                self.tracking_id = None
-                for i, track in enumerate(self.tracks):
-                    if track.no_destroy == True:
-                        self.tracks[i].state = 3
-                        break
+        elif tracking_target is None and self.tracking_id:
+            self.tracking_id = None
+            for i, track in enumerate(self.tracks):
+                if track.no_destroy == True:
+                    self.tracks[i].state = 3
+                    break
                     
         # Run matching cascade.
         matches, unmatched_tracks, unmatched_detections = \
