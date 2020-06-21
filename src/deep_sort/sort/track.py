@@ -123,7 +123,7 @@ class Track:
         """
         if self.time_since_update < self._max_age and self.no_destroy == False:
             self.mean, self.covariance = kf.predict(self.mean, self.covariance)
-        elif self.time_since_update < 10 and self.no_destroy == True:
+        elif self.time_since_update < 50 and self.no_destroy == True:
             self.mean, self.covariance = kf.predict(self.mean, self.covariance)
 
         self.age += 1
