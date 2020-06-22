@@ -141,4 +141,4 @@ To clear a target, run the following command.
 ```
 rosservice call /person_tracking/clear_target true
 ```
-Servgice will return **True** if track is successfully cleared.
+Service will return **True** if track is successfully cleared.
