@@ -2,10 +2,10 @@
   <node name="person_tracker" pkg="person_tracking" type="person_tracker.py" args="--img_topic /camera/image_raw/compressed" /> 
 
   <param name="YOLOV3/CFG" type="string" value="$(find person_tracking)/src/detector/YOLOv3/cfg/yolo_v3.cfg"/>
-  <param name="YOLOV3/WEIGHT" type="string" value="$(find person_tracking)/src/detector/YOLOv3/weight/yolov3.weights"/>
+  <param name="YOLOV3/WEIGHT" type="string" value="$(find person_tracking)/src/weights/yolov3.weights"/>
   <param name="YOLOV3/CLASS_NAMES" type="string" value="$(find person_tracking)/src/detector/YOLOv3/cfg/coco.names"/>
 
-  <param name="DEEPSORT/REID_CKPT" type="string" value="$(find person_tracking)/src/deep_sort/deep/checkpoint/model.pth.tar-100" />
+  <param name="DEEPSORT/REID_CKPT" type="string" value="$(find person_tracking)/src/weights/model.pth.tar-100" />
 
   <param name="person_tracker/camera_fov" type="int" value="60" />
 
