@@ -61,3 +61,6 @@ target/
 *.pt
 *.pth.tar-100
 *.pth
+
+# Others
+*.avi
