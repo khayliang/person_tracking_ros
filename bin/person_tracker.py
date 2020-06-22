@@ -25,7 +25,7 @@ from sensor_msgs.msg import CompressedImage
 from person_tracking.srv import choose_target, clear_target
 
 """
-args: display, img_topic, camera, save_path, video_path frame_interval
+args: display, img_topic, camera, save_results, video_path frame_interval
 
 """
 
@@ -37,6 +37,8 @@ class VideoTracker(object):
         deepsort_params = rospy.get_param("/DEEPSORT")
         
         self.camera_fov = rospy.get_param("person_tracker/camera_fov")
+        self.results_path = rospy.get_param("person_tracker/video_save_path")
+
 
         #initialize ros node to person_tracker name
         rospy.init_node('person_tracker', anonymous=True)
@@ -49,17 +51,13 @@ class VideoTracker(object):
         self.target_present_pub = rospy.Publisher("/person_tracking/target_present", Bool, queue_size=1)
         self.target_indice_pub = rospy.Publisher("/person_tracking/target_indice", Int32, queue_size=1)
 
-        self.detections_pub = rospy.Publisher("person_tracking/detection_indices", Int32MultiArray, queue_size=1)
+        self.detections_pub = rospy.Publisher("/person_tracking/detection_indices", Int32MultiArray, queue_size=1)
 
         self.image_pub = rospy.Publisher("/person_tracking/deepsort_image/compressed", CompressedImage)
 
-        #initialize subscribers to interact with node
-        #self.target_clear_sub = rospy.Subscriber("person_tracking/clear_target", Bool, self.clear_track, queue_size=1)
-        #self.choose_target_sub = rospy.Subscriber("person_tracking/choose_target", Int32, self.select_target, queue_size=1)
-
         #initialize services to interact with node
-        self.target_clear_srv = rospy.Service("person_tracking/clear_target", clear_target, self.clear_track)
-        self.target_choose_srv = rospy.Service("person_tracking/choose_target", choose_target, self.select_target)
+        self.target_clear_srv = rospy.Service("/person_tracking/clear_target", clear_target, self.clear_track)
+        self.target_choose_srv = rospy.Service("/person_tracking/choose_target", choose_target, self.select_target)
 
         #concatenate rosparams to yolov3_deepsort style
         self.cfg = {"YOLOV3": yolov3_params, "DEEPSORT": deepsort_params}
@@ -94,6 +92,17 @@ class VideoTracker(object):
         else:
             self.vdo = cv2.VideoCapture()
 
+        if self.args.save_results:
+            os.makedirs(self.results_path, exist_ok=True)
+
+            # path of saved video and results
+            self.save_video_path = os.path.join(self.results_path, "results.avi")
+            self.save_results_path = os.path.join(self.results_path, "results.txt")
+
+            # create video writer
+            fourcc =  cv2.VideoWriter_fourcc(*'MJPG')
+            self.writer = cv2.VideoWriter(self.save_video_path, fourcc, 20, (640,480))
+
         self.idx_frame = 0
         self.idx_tracked = None
         self.bbox_xyxy = []
@@ -113,12 +122,12 @@ class VideoTracker(object):
             self.im_height = int(self.vdo.get(cv2.CAP_PROP_FRAME_HEIGHT))
             assert self.vdo.isOpened()
 
-        if self.args.save_path:
+        if self.args.save_results:
             os.makedirs(self.args.save_path, exist_ok=True)
 
             # path of saved video and results
-            self.save_video_path = os.path.join(self.args.save_path, "results.avi")
-            self.save_results_path = os.path.join(self.args.save_path, "results.txt")
+            self.save_video_path = os.path.join(self.results_path, "results.avi")
+            self.save_results_path = os.path.join(self.results_path, "results.txt")
 
             # create video writer
             fourcc =  cv2.VideoWriter_fourcc(*'MJPG')
@@ -185,7 +194,6 @@ class VideoTracker(object):
 
 
         # if detection present draw bounding boxes
-        #identities = []
         if len(outputs) > 0:
             bbox_tlwh = []
             self.bbox_xyxy = outputs[:,:4]
@@ -233,20 +241,14 @@ class VideoTracker(object):
         # Publish new image
         self.image_pub.publish(msg)
 
-        if self.args.save_path:
+        if self.args.save_results:
             self.writer.write(ori_im)
-            # save results
-            write_results(self.save_results_path, results, 'mot')
 
         # logging
         self.logger.info("frame: {}, time: {:.03f}s, fps: {:.03f}, detection numbers: {}, tracking numbers: {}" \
                         .format(self.idx_frame, end-start, 1/(end-start), bbox_xywh.shape[0], len(outputs)))
     
-
-
-
-        #publishing to topics
-
+        """publishing to topics"""
         #publish detection identities
         identity_msg = Int32MultiArray(data=self.identities)
         self.detections_pub.publish(identity_msg)
@@ -288,7 +290,7 @@ def parse_args():
     parser.add_argument("--frame_interval", type=int, default=1)
     parser.add_argument("--display_width", type=int, default=800)
     parser.add_argument("--display_height", type=int, default=600)
-    parser.add_argument("--save_path", type=str)
+    parser.add_argument("--save_results", action="store_true")
     parser.add_argument("--camera", type=int, default="-1")
     parser.add_argument("--img_topic", type=str)
 
