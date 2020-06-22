@@ -94,10 +94,10 @@ class VideoTracker(object):
         else:
             self.vdo = cv2.VideoCapture()
 
-        self.results = []
         self.idx_frame = 0
         self.idx_tracked = None
         self.bbox_xyxy = []
+        self.identities = []
 
     def __enter__(self):
         if self.args.camera != -1:
@@ -145,8 +145,8 @@ class VideoTracker(object):
     #callback function to select target
     def select_target(self, ros_data):
         if self.idx_tracked is None:
-            for det in self.results:
-                if det[2] == ros_data.target:
+            for identity in self.identities:
+                if identity == ros_data.target:
                     self.idx_tracked = ros_data.target
                     return True
             
@@ -185,18 +185,16 @@ class VideoTracker(object):
 
 
         # if detection present draw bounding boxes
-        identities = []
+        #identities = []
         if len(outputs) > 0:
             bbox_tlwh = []
             self.bbox_xyxy = outputs[:,:4]
             # detection indices
-            identities = outputs[:,-1]
-            ori_im = draw_boxes(ori_im, self.bbox_xyxy, identities)
+            self.identities = outputs[:,-1]
+            ori_im = draw_boxes(ori_im, self.bbox_xyxy, self.identities)
 
             for bb_xyxy in self.bbox_xyxy:
                 bbox_tlwh.append(self.deepsort._xyxy_to_tlwh(bb_xyxy))
-
-            self.results.append((self.idx_frame-1, bbox_tlwh, identities))
 
         end = time.time()
 
@@ -250,7 +248,7 @@ class VideoTracker(object):
         #publishing to topics
 
         #publish detection identities
-        identity_msg = Int32MultiArray(data=identities)
+        identity_msg = Int32MultiArray(data=self.identities)
         self.detections_pub.publish(identity_msg)
 
         #publish if target present
