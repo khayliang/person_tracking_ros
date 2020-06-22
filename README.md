@@ -1,7 +1,7 @@
 # person_tracking_ros
 A ros package that tracks a selected target person using YOLOv3 and DeepSORT
 
-#Published Topics and Provided Services
+# Published Topics and Provided Services
 ## Published topics
 |Topic Name|Message Type|Purpose|
 |----------|------------|-------|
