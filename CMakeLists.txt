@@ -9,6 +9,7 @@ project(person_tracking)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
   geometry_msgs
+  sensor_msgs
   roscpp
   rospy
   std_msgs
@@ -60,6 +61,7 @@ add_service_files(
   FILES
   choose_target.srv
   clear_target.srv
+  update_tracker.srv
 )
 
 ## Generate actions in the 'action' folder
@@ -74,6 +76,7 @@ generate_messages(
   DEPENDENCIES
   geometry_msgs
   std_msgs
+  sensor_msgs
 )
 
 ################################################

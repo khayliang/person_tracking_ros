@@ -1,0 +1,3 @@
+sensor_msgs/CompressedImage img
+---
+geometry_msgs/Point modified_image
