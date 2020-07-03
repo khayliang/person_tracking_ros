@@ -22,10 +22,10 @@ from std_msgs.msg import Float32, Bool, Int32MultiArray, Int32
 from rospy.numpy_msg import numpy_msg
 from sensor_msgs.msg import CompressedImage
 
-from person_tracking.srv import choose_target, clear_target
+from person_tracking.srv import choose_target, clear_target, update_tracker
 
 """
-args: display, img_topic, camera, save_results, video_path frame_interval
+args: display, img_topic, camera, save_results, video_path frame_interval, service
 
 """
 
@@ -81,10 +81,12 @@ class VideoTracker(object):
             cv2.namedWindow("test", cv2.WINDOW_NORMAL)
             cv2.resizeWindow("test", args.display_width, args.display_height)
 
-        #subscribes to comprossed image topic if topic name is given
+        #subscribes to comprossed image topic if topic name is given, else provide service if service argument is given
         if args.img_topic:
             self.img_subscriber = rospy.Subscriber(args.img_topic, CompressedImage, self.ros_deepsort_callback,  queue_size = 1, buff_size=2**24)
-        #check if webcam is given if comprssed image topic not given        
+        elif args.service:
+            self.update_tracker_srv = rospy.Service("/person_tracking/update_tracker", update_tracker, self.ros_deepsort_callback)
+        #check if webcam is given if compressed image topic not given        
         elif args.camera != -1:
             print("Using webcam " + str(args.camera))
             self.vdo = cv2.VideoCapture(args.camera)
@@ -167,8 +169,11 @@ class VideoTracker(object):
 
         start = time.time()
 
-        #convert ros compressed image message to opencv 
-        np_arr = np.fromstring(ros_data.data, np.uint8)
+        #convert ros compressed image message to opencv
+        if self.args.service:
+            np_arr = np.fromstring(ros_data.img.data, np.uint8)
+        elif self.args.img_topic:
+            np_arr = np.fromstring(ros_data.data, np.uint8)
 
         ori_im = cv2.imdecode(np_arr, flags=cv2.IMREAD_COLOR)
         im = cv2.cvtColor(ori_im, cv2.COLOR_BGR2RGB)
@@ -272,13 +277,25 @@ class VideoTracker(object):
             #print(x_center_adjusted)
             angle = x_center_adjusted/pixel_per_angle
             #print(angle)
+            if self.args.img_topic:
+                self.bbox_pub.publish(x_center,y_center,0)
 
-            self.bbox_pub.publish(x_center,y_center,0)
             self.angle_pub.publish(angle)
             self.target_indice_pub.publish(Int32(self.idx_tracked))
+        
+            msg = Point()
+            msg.x = x_center
+            msg.y = y_center
+            msg.z = 0
+            return msg
         #publish if target initialized
         else:
             self.target_indice_pub.publish(Int32(self.idx_tracked))
+            msg = Point()
+            msg.x = 0
+            msg.y = 0
+            msg.z = 0
+            return msg
     #TODO: function for if no ros topic
    # def run(self):
 
@@ -293,6 +310,7 @@ def parse_args():
     parser.add_argument("--save_results", action="store_true")
     parser.add_argument("--camera", type=int, default="-1")
     parser.add_argument("--img_topic", type=str)
+    parser.add_argument("--service", action="store_true")
 
     return parser.parse_known_args()
             
