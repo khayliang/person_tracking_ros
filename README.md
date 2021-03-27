@@ -1,7 +1,7 @@
 # person_tracking_ros
 A ros2 package that tracks a selected target person using DeepSORT.
 
-![video](resources/example.gif)
+![video](resource/example.gif)
 
 # Setup
 ## Requirements
