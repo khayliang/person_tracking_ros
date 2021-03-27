@@ -88,7 +88,7 @@ class VideoTracker(Node):
 
         self.detections_pub = self.create_publisher(Int32MultiArray, "/person_tracking/detection_indices", 1)
 
-        self.image_pub = self.create_publisher(Image, "/person_tracking/deepsort_image/compressed", 1)
+        self.image_pub = self.create_publisher(Image, "/person_tracking/deepsort_image", 1)
 
         #initialize services to interact with node
         self.target_clear_srv = self.create_service(ClearTarget, "/person_tracking/clear_target", self.clear_track)
