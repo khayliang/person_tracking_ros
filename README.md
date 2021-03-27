@@ -3,6 +3,7 @@ A ros2 package that tracks a selected target person using DeepSORT.
 
 ![video](resource/example.gif)
 
+![graph](resource/deepsort_node.jpg)
 # Setup
 ## Requirements
 ### Python modules
