@@ -1,0 +1,27 @@
+#DISTANCE: euclidean or cosine
+
+#STOCK REID
+DEEPSORT:
+  REID_CKPT: "./deep_sort/deep/checkpoint/model.pth.tar-100"
+  MAX_DIST: 0.18
+  MIN_CONFIDENCE: 0.3
+  NMS_MAX_OVERLAP: 0.5
+  MAX_IOU_DISTANCE: 0.2
+  MAX_AGE: 1
+  N_INIT: 3
+  NN_BUDGET: 100
+  ALIGNED: False
+  DISTANCE: "cosine"
+
+#ALIGNED REID
+#DEEPSORT:
+#  REID_CKPT: "./deep_sort/deep/checkpoint/ckpt.t7"
+#  MAX_DIST: 0.7
+#  MIN_CONFIDENCE: 0.3
+#  NMS_MAX_OVERLAP: 0.5
+#  MAX_IOU_DISTANCE: 0.2
+#  MAX_AGE: 1
+#  N_INIT: 3
+#  NN_BUDGET: 100
+#  ALIGNED: True
+#  DISTANCE: "euclidean"

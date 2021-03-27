@@ -1,0 +1,20 @@
+deep_sort: 
+    ros__parameters: 
+        max_dist: 0.18
+        min_confidence: 0.3
+        nms_max_overlap: 0.5
+        max_iou_distance: 0.2
+        max_age: 30
+        n_init: 3
+        nn_budget: 100
+        distance: "cosine"
+        reid_ckpt: "/home/landsys/ros_workspace/src/person_tracking_ros/person_tracking_ros/weights/model.pth.tar-100"
+        classes: "/home/landsys/ros_workspace/src/person_tracking_ros/configs/coco.txt"
+        camera_fov: 60
+        save_path: "/home/landsys/Documents/deepsort_results"
+        frame_interval: 1
+        save_results: True
+        img_topic: "/virtual_camera/image_raw"
+        bbox_topic: "/detectnet/detections"
+
+
