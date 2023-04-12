@@ -2,6 +2,7 @@
 A ros package that tracks a selected target person using YOLOv3 and DeepSORT
 
 ![video](resources/example.gif)
+![video](resources/tracking.gif)
 
 # Published Topics and Provided Services
 ## Published topics
